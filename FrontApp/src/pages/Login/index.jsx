@@ -2,10 +2,12 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { setLogin , setRegister ,setForgotPass } from "./LoginSlice";
 import { useLoginMutation } from "./LoginApiSlice";
+import { useNavigate } from "react-router";
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   const [Login] = useLoginMutation()
 
@@ -13,6 +15,11 @@ const Login = () => {
     try {
       console.log("Datos del formulario:", user);
       const { data , error } = await Login(user);
+
+      if(data.status == 200){
+      navigate("/inicio")
+    }
+
       console.log("Reespuesta", data , error )
     } catch ( error) {
       console.log("Error al enviar datos ",error)

@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { setLogin } from "../../LoginSlice";
 import { usePostCreateUserMutation } from "../../LoginApiSlice";
-import axios from "axios";
+
 const Registro = () => {
 
   const [postCreateUser] = usePostCreateUserMutation();
@@ -18,11 +18,7 @@ const Registro = () => {
 
   const onSubmit = async (user) => {
 
-    console.log("Datos de registro:", user);
-
     const { data , error } = await postCreateUser(user);
-
-    console.log("Data de  crear usuarios ", data, error)
   };
 
   // Observar contraseña para validación de confirmación

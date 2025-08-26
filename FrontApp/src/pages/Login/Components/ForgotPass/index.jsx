@@ -1,5 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { setLogin } from "../../LoginSlice";
 
 const ForgotPass = () => {
   const {
@@ -8,6 +10,8 @@ const ForgotPass = () => {
     formState: { errors },
   } = useForm();
 
+  const dispatch = useDispatch();
+
   const [metodo, setMetodo] = useState("email");
 
   const onSubmit = (data) => {
@@ -15,7 +19,7 @@ const ForgotPass = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded-2xl shadow-md w-96">
         <h2 className="text-2xl font-bold text-center mb-6">
           Recuperar contraseña
@@ -101,6 +105,7 @@ const ForgotPass = () => {
             Enviar enlace de recuperación
           </button>
         </form>
+        <button className="text-blue-600 hover:underline" onClick={() => dispatch(setLogin())}>Inicio de sesión</button>
       </div>
     </div>
   );

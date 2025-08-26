@@ -1,14 +1,26 @@
 import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import { setLogin , setRegister ,setForgotPass } from "./LoginSlice";
+import { useLoginMutation } from "./LoginApiSlice";
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
+  const dispatch = useDispatch();
 
-  const onSubmit = (data) => {
-    console.log("Datos del formulario:", data);
+  const [Login] = useLoginMutation()
+
+  const onSubmit =async (user) => {
+    try {
+      console.log("Datos del formulario:", user);
+      const { data , error } = await Login(user);
+      console.log("Reespuesta", data , error )
+    } catch ( error) {
+      console.log("Error al enviar datos ",error)
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded-2xl shadow-md w-96">
         <h2 className="text-2xl font-bold text-center mb-6">Iniciar sesión</h2>
         
@@ -48,8 +60,8 @@ const Login = () => {
 
         {/* Botones adicionales */}
         <div className="flex justify-between mt-4">
-          <button className="text-blue-600 hover:underline">Registrarse</button>
-          <button className="text-blue-600 hover:underline">Olvidé contraseña</button>
+          <button className="text-blue-600 hover:underline" onClick={() => dispatch(setRegister())}>Registrarse</button>
+          <button className="text-blue-600 hover:underline" onClick={() => dispatch(setForgotPass())}> Olvidé contraseña</button>
         </div>
       </div>
     </div>

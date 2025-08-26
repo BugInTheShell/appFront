@@ -1,6 +1,14 @@
 import { useForm } from "react-hook-form";
-
+import { useDispatch } from "react-redux";
+import { setLogin } from "../../LoginSlice";
+import { usePostCreateUserMutation } from "../../LoginApiSlice";
+import axios from "axios";
 const Registro = () => {
+
+  const [postCreateUser] = usePostCreateUserMutation();
+  
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -8,15 +16,20 @@ const Registro = () => {
     formState: { errors },
   } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Datos de registro:", data);
+  const onSubmit = async (user) => {
+
+    console.log("Datos de registro:", user);
+
+    const { data , error } = await postCreateUser(user);
+
+    console.log("Data de  crear usuarios ", data, error)
   };
 
   // Observar contraseña para validación de confirmación
   const password = watch("password");
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen">
       <div className="bg-white p-8 rounded-2xl shadow-md w-96">
         <h2 className="text-2xl font-bold text-center mb-6">Registro</h2>
 
@@ -29,7 +42,7 @@ const Registro = () => {
             <input
               type="text"
               placeholder="Tu nombre"
-              {...register("nombre", { required: "El nombre es obligatorio" })}
+              {...register("name", { required: "El nombre es obligatorio" })}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
             />
             {errors.nombre && (
@@ -122,7 +135,7 @@ const Registro = () => {
             <input
               type="tel"
               placeholder="12345678"
-              {...register("telefono", {
+              {...register("Phone_number", {
                 required: "El teléfono es obligatorio",
                 pattern: {
                   value: /^[0-9]{8,15}$/,
@@ -144,6 +157,8 @@ const Registro = () => {
             Registrarse
           </button>
         </form>
+
+        <button className="text-blue-600 hover:underline" onClick={() => dispatch(setLogin())}>Inicio de sesión</button>
       </div>
     </div>
   );

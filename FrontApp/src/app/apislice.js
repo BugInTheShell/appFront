@@ -11,22 +11,15 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: async (headers, { getState }) => {
     try {
 
-      /* Tokens de seguridad */
-      headers.set("api-key", VITE_API_KEY);
-
-      const res = (await getState()?.auth) || JSON.parse(localStorage.getItem("token"));
-
-      if (res?.token || JSON.parse(localStorage.getItem("token"))) {
-        headers.set(
-          "authorization",
-          `${res.token}` || JSON.parse(localStorage.getItem("token"))
-        );
-      }
-
-
+      const res = localStorage.getItem("data");
+      
+      if (res) headers.set("api-key",res) 
+        
+    
       headers.set("Content-Type", "application/json");
       headers.set("Accept", "application/json");
-      headers.set("User-Agent", "aboutadev"); 
+      headers.set("User-Agent", "aboutadev");
+      
       headers.set("Origin", VITE_ORIGIN_URL);
 
       return headers;

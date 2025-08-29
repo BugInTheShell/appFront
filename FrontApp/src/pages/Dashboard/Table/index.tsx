@@ -1,7 +1,7 @@
 //ARCHIVO DE TABLA DE ARCHIVOS CON TS
 //MUCHO DE ESTE CODIGO VIENE POR DEFAULT DE LA DOCUMENTACIoN
 
-import { lazy, Suspense, useMemo, useState } from 'react';
+import {  useMemo, useState, useEffect } from 'react';
 import {
   MRT_EditActionButtons,
   MaterialReactTable,
@@ -31,7 +31,58 @@ import { type User, fakeData, usStates } from './makeData.js'
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
+import { useForm } from "react-hook-form";
+import Swal from 'sweetalert2';
+import {usePostCreateUserLogedMutation} from "../../Dashboard/dashboardApiSlice.js";
+import {useGetUsersQuery, useDeleteUserMutation} from "../dashboardApiSlice.js"
+
 const Example = () => {
+  const [postCreateUserLoged] = usePostCreateUserLogedMutation();
+  const [deleteUser] = useDeleteUserMutation();
+  const [allUsers , setAllUsers] =useState([])
+
+  const {data : users , error: error_users , isLoading} = useGetUsersQuery();
+
+  useEffect(() => {
+    if(!isLoading && users ){
+      setAllUsers(users)
+    }
+
+  },[users ,isLoading])
+
+  console.log("Data de usuarios obtenida ",users,error_users);
+
+    const {
+      register,
+      handleSubmit,
+      watch,
+      reset,
+      formState: { errors },
+    } = useForm();
+    const password = watch("password");
+
+  const onSubmit = async (user) => {
+    console.log("Datos a rnviar ",user)
+    try {
+      
+      const { data , error } = await postCreateUserLoged(user);
+  
+      if(data.status == 200){
+        Swal.fire({
+          title: "Usuario registrado correctamente",
+          icon: "success",
+          draggable: true
+        });
+  
+        reset()
+  
+      }
+
+    } catch (error) {
+
+     console.log("Error ",error) 
+    } 
+  };
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
@@ -45,7 +96,7 @@ const Example = () => {
         size: 80,
       },
       {
-        accessorKey: 'firstName',
+        accessorKey: 'name',
         header: 'Nombre',
         muiEditTextFieldProps: {
           required: true,
@@ -61,8 +112,8 @@ const Example = () => {
         },
       },
       {
-        accessorKey: 'lastName',
-        header: 'Extension',
+        accessorKey: 'phoneNumber',
+        header: 'Numero',
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.lastName,
@@ -77,7 +128,7 @@ const Example = () => {
       },
       {
         accessorKey: 'email',
-        header: 'Permisos',
+        header: 'Correo',
         muiEditTextFieldProps: {
           type: 'email',
           required: true,
@@ -96,8 +147,7 @@ const Example = () => {
   );
 
   //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
+  const { mutateAsync: createUser, isPending: isCreatingUser } = useCreateUser();
   //call READ hook
   const {
     data: fetchedUsers = [],
@@ -108,23 +158,6 @@ const Example = () => {
 
   //call UPDATE hook
   const { mutateAsync: updateUser, isPending: isUpdatingUser } =  useUpdateUser();
-  //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =useDeleteUser();
-
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    const newValidationErrors = validateUser(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
-    setValidationErrors({});
-    await createUser(values);
-    table.setCreatingRow(null); //exit creating mode
-  };
 
   //UPDATE action
   const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
@@ -142,15 +175,32 @@ const Example = () => {
   };
 
   //DELETE action
-  const openDeleteConfirmModal = (row: MRT_Row<User>) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUser(row.original.id);
+  const openDeleteConfirmModal = async (row: MRT_Row<User>) => {
+    try {
+      Swal.fire({
+        title: "¿Deseas eliminar este usuario?",
+        showDenyButton: true,
+        confirmButtonText: "Eliminar",
+        denyButtonText: `Cancelar`
+      }).then(async(result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+          const { data , error } = await deleteUser(row.original.id)
+          Swal.fire("Usuario eliminado", "", "success");
+        } else if (result.isDenied) {
+          Swal.fire("Sin cambios", "", "info");
+        }
+      });
+
+    } catch (error) {
+      console.log("Error al eliminar usuario ",error)
     }
+
   };
 
   const table = useMaterialReactTable({
     columns,
-    data: fetchedUsers,
+    data: allUsers,
     createDisplayMode: 'modal', //default ('row', and 'custom' are also available)
     editDisplayMode: 'modal', //default ('row', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
@@ -168,21 +218,141 @@ const Example = () => {
       },
     },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    /* onEditingRowSave: handleSaveUser, */
     //optionally customize modal content
-    renderCreateRowDialogContent: ({ table, row, internalEditComponents }) => (
+    renderCreateRowDialogContent: ({ table, row }) => (
       <>
-        <DialogTitle variant="h3">Añadir usuario</DialogTitle>
+        
+        <h1>Añadir Usuario</h1>
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
         >
-          {internalEditComponents} {/* or render custom edit components here */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Nombre */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Nombre
+            </label>
+            <input
+              type="text"
+              placeholder="Tu nombre"
+              {...register("name", { required: "El nombre es obligatorio" })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.nombre && (
+              <p className="text-red-500 text-sm">{errors.nombre.message}</p>
+            )}
+          </div>
+
+          {/* Correo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Correo
+            </label>
+            <input
+              type="email"
+              placeholder="tuemail@ejemplo.com"
+              {...register("email", {
+                required: "El correo es obligatorio",
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Formato de correo inválido",
+                },
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              placeholder="************"
+              {...register("password", {
+                required: "La contraseña es obligatoria",
+                minLength: {
+                  value: 12,
+                  message: "Debe tener al menos 12 caracteres",
+                },
+                validate: {
+                  hasUpper: (v) =>
+                    /[A-Z]/.test(v) || "Debe incluir al menos una mayúscula",
+                  hasLower: (v) =>
+                    /[a-z]/.test(v) || "Debe incluir al menos una minúscula",
+                  hasNumber: (v) =>
+                    /\d/.test(v) || "Debe incluir al menos un número",
+                  hasSpecial: (v) =>
+                    /[!@#$%^&*(),.?":{}|<>]/.test(v) ||
+                    "Debe incluir un carácter especial",
+                },
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Confirmación de contraseña */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Confirmar contraseña
+            </label>
+            <input
+              type="password"
+              placeholder="************"
+              {...register("confirmPassword", {
+                required: "Debes confirmar la contraseña",
+                validate: (value) =>
+                  value === password || "Las contraseñas no coinciden",
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          {/* Teléfono */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Teléfono
+            </label>
+            <input
+              type="tel"
+              placeholder="5512343454"
+              {...register("phoneNumber", {
+                required: "El teléfono es obligatorio",
+                pattern: {
+                  value: /^[0-9]{8,15}$/,
+                  message: "Debe contener solo números (8-15 dígitos)",
+                },
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.telefono && (
+              <p className="text-red-500 text-sm">{errors.telefono.message}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Crear usuario
+          </button>
+
+        </form> 
         </DialogContent>
-        <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </DialogActions>
       </>
     ),
     //optionally customize modal content
@@ -217,13 +387,7 @@ const Example = () => {
       <Button
         variant="contained"
         onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
+          table.setCreatingRow(true);
         }}
       >
         Añadir usuario
@@ -231,7 +395,7 @@ const Example = () => {
     ),
     state: {
       isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
+      isSaving: isCreatingUser || isUpdatingUser ,
       showAlertBanner: isLoadingUsersError,
       showProgressBars: isFetchingUsers,
     },
@@ -320,24 +484,12 @@ function useDeleteUser() {
   });
 }
 
-//react query setup in App.tsx
-const ReactQueryDevtoolsProduction = lazy(() =>
-  import('@tanstack/react-query-devtools/build/modern/production.js').then(
-    (d) => ({
-      default: d.ReactQueryDevtools,
-    }),
-  ),
-);
-
 const queryClient = new QueryClient();
 
 export default function TableData() {
   return (
     <QueryClientProvider client={queryClient}>
       <Example />
-      <Suspense fallback={null}>
-        {/* <ReactQueryDevtoolsProduction /> */}
-      </Suspense>
     </QueryClientProvider>
   );
 }

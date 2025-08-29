@@ -1,11 +1,9 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Login from './pages/Login'
 import Registro from './pages/Login/Components/Register'
 import ForgotPass from './pages/Login/Components/ForgotPass'
 import { useSelector } from 'react-redux'
+import 'animate.css';
 
 function App() {
 
@@ -15,13 +13,13 @@ function App() {
     <>
       <div className="flex justify-center px-4">
 
-        <div className={view == "Register" ? "":"hidden"}>
+        <div className={view == "Register" ? "animate__animated animate__bounceInLeft":"hidden"}>
 
           <Registro/>
 
         </div>
 
-        <div className={view == "Login" ? "":"hidden"}>
+        <div className={view == "Login" ? "animate__animated animate__bounceInRight":"hidden"}>
 
           <Login/>
 

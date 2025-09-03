@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { setRegister ,setForgotPass } from "./LoginSlice";
 import { useLoginMutation } from "./LoginApiSlice";
 import { useNavigate } from "react-router";
+import image from "../../assets/layered-waves-haikei.svg"
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
@@ -25,7 +26,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center w-screen h-screen" style={{ backgroundImage: `url("${image}")`, backgroundSize:'cover' }}>
 
         <div className=" p-8 rounded-2xl w-96">
           <h2 className="text-2xl font-bold text-center mb-6">Iniciar sesión</h2>
@@ -66,7 +67,7 @@ const Login = () => {
 
           {/* Botones adicionales */}
           <div className="flex w-full">
-            <button className="text-blue-600  mx-auto my-2 hover:underline" onClick={() => dispatch(setRegister())}>Registrarse</button>
+            <button className="text-white  mx-auto my-2 hover:underline" onClick={() => dispatch(setRegister())}>Registrarse</button>
             {/* <button className="text-blue-600 hover:underline" onClick={() => dispatch(setForgotPass())}> Olvidé contraseña</button> */}
           </div>
         </div>

@@ -4,7 +4,7 @@ import { setLogin } from "../../LoginSlice";
 import { usePostCreateUserMutation } from "../../LoginApiSlice";
 import Swal from 'sweetalert2';
 import { useEffect } from "react";
-
+import image from "../../../../assets/fondoRegistro.svg"
 const Registro = () => {
 
   const [postCreateUser] = usePostCreateUserMutation();
@@ -44,7 +44,7 @@ const Registro = () => {
   const password = watch("password");
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center w-screen h-screen" style={{ backgroundImage: `url("${image}")`, backgroundSize:'cover' }}>
       <div className="p-8 rounded-2xl w-96">
         <h2 className="text-2xl font-bold text-center mb-6">Registro</h2>
 
@@ -149,7 +149,7 @@ const Registro = () => {
             </label>
             <input
               type="tel"
-              placeholder="12345678"
+              placeholder="5538475678"
               {...register("phoneNumber", {
                 required: "El teléfono es obligatorio",
                 pattern: {
@@ -173,7 +173,7 @@ const Registro = () => {
           </button>
         </form> 
         <div className="flex w-full">
-          <button className="text-blue-600 my-2 mx-auto hover:underline" onClick={() => dispatch(setLogin())}>Inicio de sesión</button>
+          <button className="text-white my-2 mx-auto hover:underline" onClick={() => dispatch(setLogin())}>Inicio de sesión</button>
         </div>
       </div>
     </div>

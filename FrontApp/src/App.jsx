@@ -4,6 +4,7 @@ import Registro from './pages/Login/Components/Register'
 import ForgotPass from './pages/Login/Components/ForgotPass'
 import { useSelector } from 'react-redux'
 import 'animate.css';
+import image from "./assets/layered-waves-haikei.svg"
 
 function App() {
 

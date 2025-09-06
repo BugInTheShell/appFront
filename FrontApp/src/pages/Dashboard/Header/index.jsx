@@ -2,7 +2,7 @@ import { FaCog } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { setInicio , setArchivos, setUsuarios } from "./headerSlice";
 import { useNavigate } from "react-router";
-
+import { FaSignOutAlt } from "react-icons/fa";
 const Header = () => {
 
   const dispatch = useDispatch();
@@ -27,7 +27,9 @@ const Header = () => {
             <a className="btn btn-ghost text-xl">AboutAnApp</a>
         </div>
         <div className="navbar-end">
-            <button className="btn btn-error" onClick={() => navigate("/")}>Cerrar sesión</button>
+            <button className="btn btn-error" onClick={() => navigate("/")}>
+                <FaSignOutAlt className="text-white" />
+            </button>
         </div>
         </div>
   )

@@ -37,6 +37,14 @@ export const dashboardApiSlice = apislice.injectEndpoints({
                 body:{key}
             }),
             invalidatesTags:["files"]
+        }),
+        putFile: builder.mutation({
+            query: (body) => ({
+                url:"/Files/",
+                method:"PUT",
+                body
+            }),
+            invalidatesTags:["files"]
         })
         
     })
@@ -47,5 +55,6 @@ export const {
     useGetUsersQuery,
     useDeleteUserMutation,
     usePostCreateUserLogedMutation,
-    useDeleteFileMutation
+    useDeleteFileMutation,
+    usePutFileMutation
 } = dashboardApiSlice;

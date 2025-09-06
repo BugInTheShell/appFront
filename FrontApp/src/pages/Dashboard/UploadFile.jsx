@@ -13,7 +13,7 @@ const UploadFile = () => {
 
   useEffect(() => {
     if (!isLoading && data?.archivos) {
-      setUpload(data.archivos.length <= 3);
+      setUpload(data.archivos.length <= 5);
     }
   }, [data, isLoading]);
 
@@ -73,7 +73,7 @@ const UploadFile = () => {
     <div className='flex justify-end p-1 px-4'>
       <input type="file" className="file-input file-input-info mx-2" onChange={handleFileChange} ref={fileInputRef}/>
       <button onClick={handleUpload} className='mx-2 btn' disabled={!upload}>
-        Subir Archivo
+        { !upload ? "Haz alcanzado el limite de archivos " : " Subir Archivo "}
       </button>
     </div>
   );

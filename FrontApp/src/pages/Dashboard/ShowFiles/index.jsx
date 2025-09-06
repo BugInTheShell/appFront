@@ -1,13 +1,17 @@
-import { useGetFilesQuery, useDeleteFileMutation } from '../dashboardApiSlice';
+import { useGetFilesQuery, useDeleteFileMutation, usePutFileMutation } from '../dashboardApiSlice';
 import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { FaTrash } from "react-icons/fa";
-
+import UploadFile from '../UploadFile';
+import { FaDownload } from "react-icons/fa";
+import { FaEdit } from "react-icons/fa";
+import Swal from 'sweetalert2';
 const GetFiles = () => {
 
     const [files, setFiles] = useState([]);
 
     const [deleteFile] = useDeleteFileMutation()
+    const [putFile] = usePutFileMutation()
 
     const view = useSelector((state) => state?.userView?.value);
 
@@ -15,13 +19,54 @@ const GetFiles = () => {
         skip: view !== "Archivos"
     });
 
-    console.log("Data de archivos ",data,error);
-
     const handleDelete =async (key) => {
-        console.log("Key obtenida ",key)
+
         const { data ,error} = await deleteFile(key);
-        console.log("Respuesra eliminar archivo ",data,error)
     }
+
+const handleEdit = async (key) => {
+    Swal.fire({
+        title: "¿Deseas renombrar el archivo? " + key.split("/")[1],
+        input: "text",
+        inputAttributes: {
+            autocapitalize: "off"
+        },
+        showCancelButton: true,
+        confirmButtonText: "Cambiar nombre",
+        showLoaderOnConfirm: true,
+        cancelButtonText: "Volver",
+        preConfirm: async (newName) => {
+            try {
+                const folder = key.split("/")[0]; // carpeta original
+                const newKey = `${folder}/${newName}`;
+
+                const response = await putFile({
+                    oldKey: key,
+                    newKey: newKey
+                });
+
+                if (response.error) {
+                    throw new Error(response.error.message);
+                }
+
+                return newKey; // devolvemos el nuevo nombre al then()
+            } catch (error) {
+                Swal.showValidationMessage(`
+                    Request failed: ${error}
+                `);
+            }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: "Archivo renombrado",
+                text: "El archivo fue renombrado a " + result.value,
+                icon: "success"
+            });
+        }
+    });
+};
 
     useEffect(() => {
         if (!isLoading && data) {
@@ -58,7 +103,10 @@ const GetFiles = () => {
 
     return (
         <div className="p-4 sm:p-8 bg-gray-100 dark:bg-gray-800 min-h-screen">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-8 text-center">Tus Archivos</h1>
+            <div className="flex justify-between">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-8 text-center">Tus Archivos</h1>
+                <UploadFile/>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
                 {files.map((file, index) => {
 
@@ -77,21 +125,24 @@ const GetFiles = () => {
                     return (
                         <div
                         key={fileName}
-                        className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col items-center text-center space-y-4"
-                        >
-                        {/* Icono de archivo en formato SVG */}
-                        <svg
-                            className="w-16 h-16 text-blue-500 dark:text-blue-400"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 4h7v5h5v11H6V4z" />
-                        </svg>
 
-                        {/* Nombre del archivo */}
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 break-all">
-                            {fileName}
-                        </h2>
+                        className={fileName.split("/")[1] ? "bg-gray-900 rounded-2xl p-6 shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl flex flex-col items-center text-center space-y-4" : "hidden"}
+                        >
+                        <div className="h-32">
+                            {/* Icono de archivo en formato SVG */}
+                            <svg
+                                className="w-16 h-16 text-blue-500 dark:text-blue-400"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 4h7v5h5v11H6V4z" />
+                            </svg>
+
+                            {/* Nombre del archivo */}
+                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 break-all">
+                                {fileName.split("/")[1]}
+                            </h2>
+                        </div>
 
                         {/* Información adicional del archivo */}
                         <div className="text-sm text-gray-600 dark:text-gray-400 w-full text-left mt-2 space-y-1">
@@ -103,25 +154,38 @@ const GetFiles = () => {
                             </p>
                         </div>
 
-                        {/* Botón de descarga */}
-                        <a
-                            href={downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                            className="w-full mt-auto py-2 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-full shadow-lg transition-transform duration-200 hover:scale-105 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            Descargar
-                        </a>
+                        <div className="flex justify-between space-x-2">
+                            {/* Botón de descarga */}
+                            <a
+                                href={downloadUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download
+                                className="w-auto mt-auto py-2 px-6 bg-gradient-to-r from-blue-400 to-blue-800 text-white font-bold rounded-full shadow-lg transition-transform duration-200 hover:scale-105 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <FaDownload />
+                                
+                            </a>
 
-                        {/* Botón de eliminar */}
-                        <button
-                            onClick={() => handleDelete(fileName)}
-                            className="w-full py-2 px-6 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-full shadow-lg flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                        >
-                            <FaTrash />
-                            Eliminar
-                        </button>
+                            {/* Botón de eliminar */}
+                            <button
+                                onClick={() => handleDelete(fileName)}
+                                className="w-auto py-2 px-6 bg-gradient-to-r from-red-400 to-red-800 text-white font-bold rounded-full shadow-lg flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            >
+                                <FaTrash />
+                        
+                            </button>
+
+                            {/* Botón de editar */}
+                            <button
+                                onClick={() => handleEdit(fileName)}
+                                className="w-auto py-2 px-6 bg-gradient-to-r from-green-400 to-green-800 text-white font-bold rounded-full shadow-lg flex items-center justify-center gap-2 transition-transform duration-200 hover:scale-105 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                            >
+                                <FaEdit  />
+                                
+                            </button>
+                        </div>
+
                         </div>
                     );
                 })}

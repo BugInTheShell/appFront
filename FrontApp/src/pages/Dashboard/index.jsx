@@ -27,7 +27,7 @@ const Inicio = () => {
 
 
         <div className={view == "Archivos" ? "":"hidden"}>
-
+        
           <UploadFile/>
           <GetFiles/>
 

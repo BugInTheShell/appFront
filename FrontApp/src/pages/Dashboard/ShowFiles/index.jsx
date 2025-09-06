@@ -11,7 +11,7 @@ const GetFiles = () => {
     const { data, error, isLoading } = useGetFilesQuery(null, {
         skip: view !== "Archivos"
     });
-    console.log("Respuesta obtendia ",data,error)
+
     useEffect(() => {
         if (!isLoading && data) {
             setFiles(data.archivos);
@@ -50,17 +50,18 @@ const GetFiles = () => {
             <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-8 text-center">Tus Archivos</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
                 {files.map((file, index) => {
-                    // La URL base para la descarga del archivo de S3
-                    const downloadBaseUrl = "https://almacenamiento-examen.s3.us-east-1.amazonaws.com/";
+
                     // La propiedad `Key` contiene la ruta completa del archivo
                     const fileName = file.Key;
+
                     // La propiedad `Size` contiene el tamaño del archivo en bytes
                     const fileSize = file.Size;
+
                     // La propiedad `LastModified` contiene la fecha de modificación
                     const lastModified = new Date(file.LastModified).toLocaleDateString();
 
                     // Construye la URL completa
-                    const downloadUrl = `${downloadBaseUrl}${fileName}`;
+                    const downloadUrl = `${process.env.VITE_AWS_URL}${fileName}`;
 
                     return (
                         <div

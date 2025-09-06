@@ -5,7 +5,7 @@ export const dashboardApiSlice = apislice.injectEndpoints({
 
         getFiles: builder.query({
             query: () =>'/Files/file-privileges/',
-            providesTags: [] 
+            providesTags: ["files"] 
         }),
 
         getUsers: builder.query({
@@ -30,6 +30,14 @@ export const dashboardApiSlice = apislice.injectEndpoints({
             }),
             invalidatesTags:["users"]
         }),
+        deleteFile: builder.mutation({
+            query:(key) => ({
+                url:`/Files/`,
+                method:"DELETE",
+                body:{key}
+            }),
+            invalidatesTags:["files"]
+        })
         
     })
 });
@@ -38,5 +46,6 @@ export const {
     useGetFilesQuery,
     useGetUsersQuery,
     useDeleteUserMutation,
-    usePostCreateUserLogedMutation
+    usePostCreateUserLogedMutation,
+    useDeleteFileMutation
 } = dashboardApiSlice;

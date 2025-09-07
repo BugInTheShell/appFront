@@ -34,11 +34,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useForm } from "react-hook-form";
 import Swal from 'sweetalert2';
 import {usePostCreateUserLogedMutation} from "../../Dashboard/dashboardApiSlice.js";
-import {useGetUsersQuery, useDeleteUserMutation} from "../dashboardApiSlice.js"
+import {useGetUsersQuery, useDeleteUserMutation, usePutUserMutation} from "../dashboardApiSlice.js";
+
+import image from "../../../assets/fondo_usuarios.svg";
 
 const Example = () => {
   const [postCreateUserLoged] = usePostCreateUserLogedMutation();
   const [deleteUser] = useDeleteUserMutation();
+  const [putUser] = usePutUserMutation();
   const [allUsers , setAllUsers] =useState([])
 
   const {data : users , error: error_users , isLoading} = useGetUsersQuery();
@@ -50,7 +53,6 @@ const Example = () => {
 
   },[users ,isLoading])
 
-  console.log("Data de usuarios obtenida ",users,error_users);
 
     const {
       register,
@@ -62,7 +64,6 @@ const Example = () => {
     const password = watch("password");
 
   const onSubmit = async (user) => {
-    console.log("Datos a rnviar ",user)
     try {
       
       const { data , error } = await postCreateUserLoged(user);
@@ -159,20 +160,6 @@ const Example = () => {
   //call UPDATE hook
   const { mutateAsync: updateUser, isPending: isUpdatingUser } =  useUpdateUser();
 
-  //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    const newValidationErrors = validateUser(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
-    }
-    setValidationErrors({});
-    await updateUser(values);
-    table.setEditingRow(null); //exit editing mode
-  };
 
   //DELETE action
   const openDeleteConfirmModal = async (row: MRT_Row<User>) => {
@@ -198,6 +185,12 @@ const Example = () => {
 
   };
 
+  const handleEditUser =async (user) => {
+    console.log("Usuaraio obtenido ",user)
+    const { data , error } = await putUser(user.id,user);
+    console.log("Respuesta actualizar usuario ",data,error)
+  }
+
   const table = useMaterialReactTable({
     columns,
     data: allUsers,
@@ -211,16 +204,33 @@ const Example = () => {
           children: 'Error loading data',
         }
       : undefined,
-    muiTableContainerProps: {
-      sx: {
-        minHeight: '500px',
-        maxHeight:'800px'
-      },
+      muiTableContainerProps: {
+    sx: {
+      minHeight: '500px',
+      maxHeight: '800px',
+      backgroundColor: '#CED2F5',
+      color: '#5B69EB',
     },
+      },
+      muiTableHeadCellProps: {
+        sx: {
+          backgroundColor: '#5B69EB',
+          color: 'white',
+          fontWeight: 'bold',
+        },
+      },
+      muiTableBodyProps: {
+        sx: {
+          '& tr:nth-of-type(odd)': {
+            backgroundColor: '#5B69EB',
+          },
+          '& tr:nth-of-type(even)': {
+            backgroundColor: '#CED2F5',
+          },
+        },
+      },
     onCreatingRowCancel: () => setValidationErrors({}),
     onEditingRowCancel: () => setValidationErrors({}),
-    /* onEditingRowSave: handleSaveUser, */
-    //optionally customize modal content
     renderCreateRowDialogContent: ({ table, row }) => (
       <>
         
@@ -358,15 +368,84 @@ const Example = () => {
     //optionally customize modal content
     renderEditRowDialogContent: ({ table, row, internalEditComponents }) => (
       <>
-        <DialogTitle variant="h3">Editar archivo</DialogTitle>
+        <h1 className='text-3xl p-2 font-medium text-gray-700/75'>Editar datos de  <strong>{row.original.name}</strong></h1>
         <DialogContent
           sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
         >
-          {internalEditComponents} {/* or render custom edit components here */}
+        <form onSubmit={handleSubmit(handleEditUser)} className="space-y-4">
+          {/* Nombre */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Nombre
+            </label>
+            <input
+              type="text"
+              defaultValue={row.original.name}
+              placeholder={row.original.name}
+              {...register("name")}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.nombre && (
+              <p className="text-red-500 text-sm">{errors.nombre.message}</p>
+            )}
+          </div>
+
+          {/* Correo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Correo
+            </label>
+            <input
+              type="email"
+              placeholder={row.original.email}
+              defaultValue={row.original.email}
+              {...register("email", {
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "Formato de correo inválido",
+                },
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Teléfono */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Teléfono
+            </label>
+            <input
+              type="tel"
+              defaultValue={row.original.phoneNumber}
+              placeholder={row.original.phoneNumber}
+              {...register("phoneNumber", {
+                pattern: {
+                  value: /^[0-9]{8,15}$/,
+                  message: "Debe contener solo números (8-15 dígitos)",
+                },
+              })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+            />
+            {errors.telefono && (
+              <p className="text-red-500 text-sm">{errors.telefono.message}</p>
+            )}
+          </div>
+
+          <input className='hidden' { ... register("id") } defaultValue={parseInt(row.original.id)}/>
+
+          <button
+            type="submit"
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Modificar datos
+          </button>
+
+        </form>         
+        
         </DialogContent>
-        <DialogActions>
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
-        </DialogActions>
       </>
     ),
     renderRowActions: ({ row, table }) => (
@@ -465,32 +544,15 @@ function useUpdateUser() {
   });
 }
 
-//DELETE hook (delete user in api)
-function useDeleteUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
-}
-
 const queryClient = new QueryClient();
 
 export default function TableData() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Example />
-    </QueryClientProvider>
+    <div className='min-h-screen align-middle items-center px-10 py-20 overflow-y-hidden' style={{ backgroundImage: `url("${image}")`, backgroundSize:'cover' }}>
+      <QueryClientProvider client={queryClient}>
+        <Example />
+      </QueryClientProvider>
+    </div>
   );
 }
 

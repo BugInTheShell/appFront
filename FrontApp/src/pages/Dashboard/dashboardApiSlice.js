@@ -22,6 +22,13 @@ export const dashboardApiSlice = apislice.injectEndpoints({
         invalidatesTags:["users"]
 
         }),
+        putUser: builder.mutation({
+            query:(id,body) => ({
+                url:`/Users/${id}`,
+                method:"PUT",
+                body
+            })
+        }),
         postCreateUserLoged : builder.mutation({
             query : (body) =>({
                 url:"/Users/",
@@ -56,5 +63,6 @@ export const {
     useDeleteUserMutation,
     usePostCreateUserLogedMutation,
     useDeleteFileMutation,
-    usePutFileMutation
+    usePutFileMutation,
+    usePutUserMutation
 } = dashboardApiSlice;

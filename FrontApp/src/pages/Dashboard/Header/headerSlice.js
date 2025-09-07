@@ -15,6 +15,9 @@ export const headerSlice = createSlice({
     setUsuarios: (state) => {
       state.value = "Usuarios"
     },
+    setSharedMe: (state) => {
+      state.value = "SharedMe"
+    },
     setView: (state, action) => {
       state.value = action.payload
     }
@@ -22,7 +25,7 @@ export const headerSlice = createSlice({
 })
 
 // Exportar acciones
-export const { setInicio, setArchivos, setUsuarios, setView } = headerSlice.actions
+export const { setInicio, setArchivos, setUsuarios, setView, setSharedMe } = headerSlice.actions
 
 // Exportar reducer
 export default headerSlice.reducer

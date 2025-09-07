@@ -19,7 +19,7 @@ const Inicio = () => {
           <h1>Inicio</h1>
         </div>
 
-        <div className={view == "Usuarios" ? " p-2 px-4":"hidden"}>
+        <div className={view == "Usuarios" ? " ":"hidden"}>
 
           <TableData/>
 

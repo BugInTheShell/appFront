@@ -1,8 +1,8 @@
 import { FaCog } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { setInicio , setArchivos, setUsuarios } from "./headerSlice";
+import { setInicio , setArchivos, setUsuarios ,setSharedMe } from "./headerSlice";
 import { useNavigate } from "react-router";
-import { FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaFileAlt, FaUsers, FaShareAlt , FaSignOutAlt } from 'react-icons/fa';
 const Header = () => {
 
   const dispatch = useDispatch();
@@ -18,8 +18,10 @@ const Header = () => {
             <ul
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-                <li><button onClick={() => dispatch(setArchivos())}>Archivos</button></li>
-                <li><button onClick={() => dispatch(setUsuarios())}>Usuarios</button></li>
+                <li><button onClick={() => dispatch(setInicio())}> <FaHome /> Inicio</button></li>
+                <li><button onClick={() => dispatch(setArchivos())}><FaFileAlt /> Mis archivos</button></li>
+                <li><button onClick={() => dispatch(setUsuarios())}><FaUsers /> Usuarios</button></li>
+                <li><button onClick={() => dispatch(setSharedMe())}><FaShareAlt /> Compartidos conmigo</button></li>
             </ul>
             </div>
         </div>
